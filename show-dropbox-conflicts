@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Id$
-#
 # This script will show you all the filenames within a Dropbox directory tree
 # that are conflicted (i.e. that have unresolved changes with the same file
 # from another machine). You can use it by passing in the name of the Dropbox
@@ -40,8 +38,18 @@ done
 shift $(($OPTIND - 1))
 
 if $DECODE; then
-    (cd $1 && find .) | grep -i conflicted | grep -v .dropbox.cache | cut -f 1 -d ' ' | xargs encfsctl decode $1
+    (cd $1 && find .) | \
+     grep -i -E "conflicted|konflikt" | \
+     grep -v .dropbox.cache | \
+     cut -f 1 -d ' ' | \
+     while read FILE; do
+         echo -n $FILE
+         echo -n " => "
+         encfsctl decode --extpass=./pass.sh $1 "$FILE"
+     done
 else
-    (cd $1 && find .) | grep -i conflicted | grep -v .dropbox.cache
+    (cd $1 && find .) | \
+     grep -i -E "conflicted|konflikt" | \
+     grep -v .dropbox.cache
     exit 0
 fi
